@@ -828,7 +828,7 @@ volRegionMax
 
 98行目の最終結果時刻取得方法を変更する。
 OpenFOAM 4では，sampleによる結果がpostProcessing/sample内に作成される。
-OpenFOAM 3 では，sampleの結果がpostProcessing/sets/に書かれる。このsets/ディレクトリには，streamLinesディレクトリも作成されう。オリジナルのcreateGraphsスクリプトでは，最終結果の時刻をsetsディレクトリ内の名前から取り出すことになっており，streamLinesディレクトリが存在すると時刻が正確に取り出せない。そのため，最終時刻の取り出しに foamListTimes ユーティリティを利用するように修正した。
+OpenFOAM 3 では，sampleの結果がpostProcessing/sets/に書かれる。このsets/ディレクトリには，streamLinesディレクトリも作成される。オリジナルのcreateGraphsスクリプトでは，最終結果の時刻をsetsディレクトリ内の名前から取り出すことになっており，streamLinesディレクトリが存在すると時刻が正確に取り出せない。そのため，最終時刻の取り出しに foamListTimes ユーティリティを利用するように修正した。
 
 ```
 #!/bin/sh
@@ -964,6 +964,6 @@ done
 echo Done
 
 #------------------------------------------------------------------------------```
-
+```
 
 [手順一覧に戻る](#tableOfContents)

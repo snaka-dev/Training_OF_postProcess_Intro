@@ -1,0 +1,3 @@
+wallHeatBalance.C
+
+LIB = $(FOAM_USER_LIBBIN)/libwallHeatBalanceFunctionObject

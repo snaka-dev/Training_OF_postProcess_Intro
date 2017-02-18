@@ -1,0 +1,36 @@
+wallHeatFlux-hot
+{
+    type        wallHeatFluxFO;
+    libs        ("libwallHeatFluxFOFunctionObject.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 10;
+
+    patches     (hot);
+}
+
+wallHeatFlux-cold
+{
+    type        wallHeatFluxFO;
+    libs        ("libwallHeatFluxFOFunctionObject.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 10;
+
+    patches     (cold);
+}
+
+
+wallHeatFlux-All
+{
+    type        wallHeatFluxFO;
+    libs        ("libwallHeatFluxFOFunctionObject.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 10;
+
+    patches     (".*");
+}

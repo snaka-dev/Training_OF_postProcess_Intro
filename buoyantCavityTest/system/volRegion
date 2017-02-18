@@ -1,0 +1,65 @@
+volRegionAverageT
+{
+    type            volRegion;
+    libs ("libfieldFunctionObjects.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 50;
+
+    log             true;
+    writeFields     no; //true;
+    regionType      all; //cellZone;
+    //name            c0;
+    operation       volAverage;
+    //weightField     alpha1;
+    fields
+    (
+        T
+        //U
+    );
+}
+
+volRegionMin
+{
+    type            volRegion;
+    libs ("libfieldFunctionObjects.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 50;
+
+    log             true;
+    writeFields     no; //true;
+    regionType      all; //cellZone;
+    //name            c0;
+    operation       min;
+    //weightField     alpha1;
+    fields
+    (
+        T
+        U
+    );
+}
+
+volRegionMax
+{
+    type            volRegion;
+    libs ("libfieldFunctionObjects.so");
+
+    //enabeld true;
+    writeControl timeStep;
+    writeInterval 50;
+
+    log             true;
+    writeFields     no; //true;
+    regionType      all; //cellZone;
+    //name            c0;
+    operation       max;
+    //weightField     alpha1;
+    fields
+    (
+        T
+        U
+    );
+}

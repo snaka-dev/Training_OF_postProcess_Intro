@@ -1,0 +1,14 @@
+wallHeatBalance-All  // An aribitrary name can be used.
+                     // This name is  used as the name of the output directory 
+{
+    type        wallHeatBalance;
+    libs        ("libwallHeatBalanceFunctionObject.so");
+
+    //enabeld true; // yes/no
+    writeControl timeStep; // timeStep, writeTime, adjustableRunTime
+                           // runTime, clockTime, cpuTime, none
+    writeInterval 10;
+
+    // when patches is empty, all wall patches are used
+    patches     ();
+}

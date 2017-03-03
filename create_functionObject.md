@@ -43,7 +43,7 @@ solve
 
 | <img src=./img/wallHeatBalance-graph.png alt="熱収支のグラフ" title="熱収支のグラフ" width=600px> |
 |:-------:|
-|  図 　残差履歴のグラフ  |
+|  図 　熱収支のグラフ  |
 
 ## Note ##
 

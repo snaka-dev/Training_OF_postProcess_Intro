@@ -82,19 +82,20 @@ https://www.facebook.com/OpenCAEstudyGroupAtToyama
 <a name="tableOfContents"></a>
 ## 目次 ##
 
-1.   [本文書での表記方法について            ](#notation)
-2.   [準備                             ](#pre)
-  1. [Linuxコマンドの確認                  ](#linuxCommand)
-  2. [環境変数の確認                     ](#checkEnvVariables)
-3.   [講習の流れ                         ](#section1)
-4.   [例題のコピーと設定変更と実行            ](#section2)
-5.   [wallHeatFluxユーティリティのコード確認                  ](#section3)
+1.   [本文書での表記方法について                   ](#notation)
+2.   [準備                                              ](#pre)
+  1. [Linuxコマンドの確認                            ](#linuxCommand)
+  2. [環境変数の確認                                ](#checkEnvVariables)
+3.   [講習の流れ                                      ](#section1)
+4.   [例題のコピーと設定変更と実行                 ](#section2)
+5.   [wallHeatFluxユーティリティのコード確認      ](#section3)
 6.   [wallShearStress のコード確認              ](#section4)
-7.   [foamNewFunctionObject ユーティリティ ](#section5)
-8.   [wallHeatBalanceの作成                             ](#section6)
-  1. [wallHeatBalance.H                  ](#section6-1)
-  2. [wallHeatBalance.C                   ](#section6-2)
-  3. [Makeフォルダ                   ](#section6-3)
+7.   [foamNewFunctionObject ユーティリティ 　](#section5)
+8.   [wallHeatBalanceの作成                     ](#section6)
+  1. [wallHeatBalance.H                          ](#section6-1)
+  2. [wallHeatBalance.C                          ](#section6-2)
+  3. [Makeフォルダ                                    ](#section6-3)
+9.   [wallHeatBalance用ディクショナリ             ](#section7)
 
 
 <a name="pre"></a>
@@ -974,3 +975,60 @@ LIB_LIBS = \
 
 [手順一覧に戻る](#tableOfContents)
 
+
+<a name="section7"></a>
+## wallHeatBalance用ディクショナリ ##
+
+### 残差出力のためにsystem/wallHeatBalanceファイルを作成 ###
+
+例題のsystemディレクトリに，残差出力設定用ファイル wallHeatBalance を作成する。作成したwallHeatBalanceファイルに下記を書き込む。
+
+```
+wallHeatBalance-All  // An aribitrary name can be used.
+                            // This name is  used as the name of the output directory 
+{
+    type        wallHeatBalance;
+    libs        ("libwallHeatBalanceFunctionObject.so");
+
+    //enabeld true; // yes/no
+    writeControl timeStep; // timeStep, writeTime, adjustableRunTime
+                                   // runTime, clockTime, cpuTime, none
+    writeInterval 10;
+
+    // when patches is empty, all wall patches are used
+    patches     ();
+}
+```
+
+### 残差出力のためにsystem/controlDictファイルを修正 ###
+
+作成したresidualファイルの内容を実行時に参照するように，system/controlDictファイルを修正する。controlDictファイルの下部にあるfunctionsサブディクショナリ内部に，下記を追加する。
+
+```
+    #include "wallHeatBalance"
+
+```
+
+### 計算実行 ###
+
+端末から例題ディレクトリに移動し，計算実行スクリプト Allrun を実行する。
+
+> cd $FOAM_RUN/buoyantCavityTest
+>
+> ./Allrun
+
+実行が継続している間に，別の端末を起動する。（計算実行中の端末で右クリック，Open Terminalを選択してもよい。）
+
+端末から下記コマンドを実行し，残差ファイルをグラフ表示する。
+
+> foamMonitor -l postProcessing/﻿wallHeatBalance/0/wallHeatBalance.dat
+
+表示されるグラフを下図に示す。
+
+| <img src=./img/wallHeatBalance-graph.png alt="熱収支のグラフ" title="熱収支のグラフ" width=600px> |
+|:-------:|
+|  図 　熱収支のグラフ  |
+
+計算開始初期には，流入する熱量が多い。繰り返しを重ねることで，加熱面から流入する熱量と冷却面から流出する熱量が等しくなっていくことが分かる。foamMonitorユーティリティでは，縦軸範囲も指定可能である。値が0に近づいた熱の収支を見たい場合には，下記のように -y オプションを使い，縦軸の範囲を追加する。
+
+> foamMonitor -y [-1:1] -l postProcessing/﻿wallHeatBalance/0/wallHeatBalance.dat

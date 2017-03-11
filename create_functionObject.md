@@ -74,6 +74,10 @@ https://www.facebook.com/OpenCAEstudyGroupAtToyama
     - 　[OpenFOAMユーザーのためのシェルスクリプト入門.pdf](http://eddy.pu-toyama.ac.jp/%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3CAE%E5%8B%89%E5%BC%B7%E4%BC%9A-%E5%AF%8C%E5%B1%B1/?action=cabinet_action_main_download&block_id=99&room_id=1&cabinet_id=1&file_id=154&upload_id=288 "OpenFOAMユーザーのためのシェルスクリプト入門.pdf")
 
 
+- 過去の講習（20170121第51回オープンCAE勉強会＠富山，OpenFOAMのポスト処理自動化 超入門）資料を見て，OpenFOAMのポスト処理の基本を理解している。
+    - 　[OpenFOAMのポスト処理自動化 超入門テキスト：introduction.md](https://github.com/snaka-dev/Training_OF_postProcess_Intro)
+
+
 
 <a name="tableOfContents"></a>
 ## 目次 ##
@@ -90,7 +94,7 @@ https://www.facebook.com/OpenCAEstudyGroupAtToyama
 8.   [wallHeatBalanceの作成                             ](#section6)
   1. [wallHeatBalance.H                  ](#section6-1)
   2. [wallHeatBalance.C                   ](#section6-2)
-8.   [For OpenFOAM 3                   ](#section7)
+  3. [Makeフォルダ                   ](#section6-3)
 
 
 <a name="pre"></a>
@@ -156,7 +160,6 @@ foamNewFunctionObject ユーティリティを実行し，functionObject のひ�
 [手順一覧に戻る](#tableOfContents)
 
 
-
 <a name="section2"></a>
 ## 例題のコピーと設定変更と実行 ##
 
@@ -164,7 +167,7 @@ foamNewFunctionObject ユーティリティを実行し，functionObject のひ�
 
 作業ディレクトリ（$FOAM_RUN）に例題（$FOAM_TUTORIALS/heatTransfer/buoyantSimpleFoam/buoyantCavity/）をコピーする。コピーして作成したケースの名前は buoyantCavityTest とする。
 
-> mkdir -p $FOAM_RUN 
+> mkdir -p $FOAM_RUN
 
 > cp -r $FOAM_TUTORIALS/heatTransfer/buoyantSimpleFoam/buoyantCavity/ $FOAM_RUN/buoyantCavityTest
 
@@ -229,14 +232,14 @@ functions
 端末から例題ディレクトリに移動し，計算実行スクリプト Allrun を実行する。
 
 > cd $FOAM_RUN/buoyantCavityTest
-> 
+>
 > ./Allrun
 
 実行が継続している間に，別の端末を起動する。（計算実行中の端末で右クリック，Open Terminalを選択してもよい。）
 
 端末から下記コマンドを実行し，残差ファイルをグラフ表示する。
 
-> foamMonitor -l postProcessing/﻿residuals/0/residuals.dat 
+> foamMonitor -l postProcessing/﻿residuals/0/residuals.dat
 
 表示されるグラフを下図に示す。
 
@@ -247,7 +250,7 @@ functions
 
 ### ポスト処理出力の確認：sample ###
 
-ディレクトリ postProcessing/ に sample ディレクトリが作成されていることを確認する。その下にある 869ディレクトリの中身を確認する。これらのファイルは，Allrunスクリプトで事項した"postProcess -latestTime -func sample"により作成されたものである。どのような情報を取り出したものかは，system/sampleファイルを確認する。
+ディレクトリ postProcessing/ に sample ディレクトリが作成されていることを確認する。その下にある 869ディレクトリの中身を確認する。これらのファイルは，Allrunスクリプトで実行した"postProcess -latestTime -func sample"により作成されたものである。どのような情報を取り出したものかは，system/sampleファイルを確認する。
 
 ### ポスト処理出力の確認：residuals ###
 
@@ -295,31 +298,33 @@ wallHeatFlux.C において，面での熱流束を求めるコードは下記�
         );
 ```
 
-エネルギ勾配 snGrad(h)［単位：J/kg/m］ と 流温度拡散率[kg/m/s]をかけることで，面での熱流束 heatFlus [J/m/m/s = W/m/m]を求めている．乱流計算の場合には，層流のalphaと乱流による温度拡散係数alphatとの和である有効温度拡散係数alphaEffが使用される。層流計算では，流体物性の温度拡散係数が使用される。
+エネルギ勾配 snGrad(h)［単位：J/kg/m］ と 温度拡散率[kg/m/s]をかけることで，面での熱流束 heatFlux [J/m/m/s = W/m/m]を求めている．乱流計算の場合には，層流のalphaと乱流による温度拡散係数alphatとの和である有効温度拡散係数alphaEffが使用される。層流計算では，流体物性の温度拡散係数が使用される。
 
 エネルギ h は，createFields.H において，`const volScalarField& h = thermo->he();`と定義されている。さらに検討していくと，basicThermo.H で定義されている Enthalpy または Internal energy [J/kg] であることがわかる。
 
 
+bashicThermo.Hでの定義
 
 ```
-bashicThermo.Hでの定義
 //- Enthalpy/Internal energy [J/kg]
 //  Non-const access allowed for transport equations
             virtual volScalarField& he() = 0;
 ```
 
-            //- Thermal diffusivity for enthalpy of mixture [kg/m/s]
-            virtual const volScalarField& alpha() const;
-
 /opt/openfoam4/src/TurbulenceModels/compressible/EddyDiffusivity/
+
+```
         //- Return the effective turbulent thermal diffusivity for enthalpy
         //  [kg/m/s]
         virtual tmp<volScalarField> alphaEff() const
         {
             return this->transport_.alphaEff(alphat());
         }
+```
 
-src/TurvbulenceModels/compressible/ThermalDiffusivity.H
+/opt/openfoam4/src/TurvbulenceModels/compressible/ThermalDiffusivity.H
+
+```
         //- Return the effective turbulent thermal diffusivity for enthalpy
         //  [kg/m/s]
         virtual tmp<volScalarField> alphaEff() const
@@ -332,8 +337,7 @@ src/TurvbulenceModels/compressible/ThermalDiffusivity.H
         {
             return this->transport_.alpha();
         }
-
-Effective thermal diffusivity of mixture [kg/m/s]
+```
 
 [手順一覧に戻る](#tableOfContents)
 
@@ -341,10 +345,10 @@ Effective thermal diffusivity of mixture [kg/m/s]
 <a name="section4"></a>
 ## wallShearStress のコード確認 ##
 
+/opt/openfoam4/src/functionObjects/field/wallShearStress/
+
 
 [手順一覧に戻る](#tableOfContents)
-
-
 
 
 <a name="section5"></a>
@@ -352,10 +356,10 @@ Effective thermal diffusivity of mixture [kg/m/s]
 
 foamNewFunctionObject を実行する。必要な引数の無い状態で実行し，その使い方を表示させると，次のようになる。
 
-> $ foamNewFunctionObject 
+> $ foamNewFunctionObject
 Wrong number of arguments
 Usage: foamNewFunctionObject [-h | -help] <functionObjectName>
-> 
+>
 * Create directory with source and compilation files for a new function object
   <functionObjectName> (dir)
   - <functionObjectName>.H
@@ -372,8 +376,13 @@ wallHeatBalance という名前のfunctionObjectを作成することにする�
 
 > $ foamNewFunctionObject wallHeatBalance
 
+ここで作成されたひな形のクラスは， fvMeshFunctionObject を継承している。このfvMeshFunctionObject クラスは，regionFunctionObject クラスを継承している。（/src/finiteVolume/fvMesh/fvMeshFunctionObject/fvMeshFunctionObject.H）
+
+wallHeatBalance → fvMeshFunctionObject → regionFunctionObject
+
 wallHeatBalance.H を見る。主要な要素は，下記の4つの関数である。
 
+```
         //- Read the wallHeatBalance data
         virtual bool read(const dictionary&);
 
@@ -385,6 +394,32 @@ wallHeatBalance.H を見る。主要な要素は，下記の4つの関数であ�
 
         //- Write the wallHeatBalance
         virtual bool write();
+```
+
+これらの少しだけ詳しい説明は，下記のファイルにある。
+
+/opt/openfoam4/src/OpenFOAM/db/functionObjects/functionObject/functionObject.H
+
+```
+
+        //- Read and set the function object if its data have changed
+        virtual bool read(const dictionary&);
+
+        //- Called at each ++ or += of the time-loop.
+        //  postProcess overrides the usual executeControl behaviour and
+        //  forces execution (used in post-processing mode)
+        virtual bool execute() = 0;
+
+        //- Called at each ++ or += of the time-loop.
+        //  postProcess overrides the usual writeControl behaviour and
+        //  forces writing always (used in post-processing mode)
+        virtual bool write() = 0;
+
+        //- Called when Time::run() determines that the time-loop exits.
+        //  By default it simply calls execute().
+        virtual bool end();
+
+```
 
 [手順一覧に戻る](#tableOfContents)
 
@@ -392,11 +427,10 @@ wallHeatBalance.H を見る。主要な要素は，下記の4つの関数であ�
 <a name="section6"></a>
 ## wallHeatBalanceの作成 ##
 
-具体的にコードの作成をはじめる。
-
-今回作成するコードの目的は次の通りである。
+具体的にコードの作成をはじめる。今回作成するコードの目的は次の通りである。
 
 + 固体面から流入出する熱量の時間履歴をファイルに出力する
+
 + 実行時にオンタイムでグラフ表示できる形式のファイルとする（foamMonitorで表示する）
 
 ファイルへの書き出しや読み込みは，wallShearStressを参考にする．熱量算出部分は，wallHeatFluxユーティリティを参考にする．
@@ -412,7 +446,15 @@ https://github.com/OpenFOAM/OpenFOAM-dev/tree/master/src/functionObjects/field/w
 <a name="section6-1"></a>
 ## wallHeatBalance.H のコード ##
 
+クラス名は， wallHeatBalance であり，writeFilesクラス（ functionObject base class for writing files）を継承することとする。これは，wallShearStressクラスと同様に，ファイルの入出力を可能にする可能性があるためである。
+
+先に示したひな形では，fvMeshFunctionObject を継承することとなっている。writeFiles クラスは，fvMeshFunctionObject を継承しているため，両者を継承すると良くない。writeFilesクラスの継承関係は次の通りである。
+
+writeFiles → writeFile → regionFunctionObject → functionObject 
+
+    
 wallHeatBalance.H のコードは次のようになる。
+
 ```
 
 Class
@@ -421,10 +463,10 @@ Class
 Group
 
 Description
-    This function object evaluates and outputs the incoming heat [W] 
-    at wall patches.  The result is written as a time-history data 
+    This function object evaluates and outputs the incoming heat [W]
+    at wall patches.  The result is written as a time-history data
     to wallHeatBalance-patchName.
-   
+
 
     Example of function object specification:
     \verbatim
@@ -557,6 +599,8 @@ public:
 
 <a name="section6-2"></a>
 ## wallHeatBalance.C のコード ##
+
+
 
 wallHeatBalance.C は次のように。
 
@@ -889,3 +933,44 @@ bool Foam::functionObjects::wallHeatBalance::write()
 
 
 [手順一覧に戻る](#tableOfContents)
+
+
+<a name="section6-3"></a>
+## Makeフォルダ ##
+
+### files
+
+```
+wallHeatBalance.C
+
+LIB = $(FOAM_USER_LIBBIN)/libwallHeatBalanceFunctionObject
+
+```
+
+### options
+
+```
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lfluidThermophysicalModels \
+    -lincompressibleTransportModels \
+    -lturbulenceModels \
+    -lcompressibleTransportModels \
+    -lincompressibleTurbulenceModels \
+    -lcompressibleTurbulenceModels \
+    -lmeshTools 
+
+```
+
+[手順一覧に戻る](#tableOfContents)
+
